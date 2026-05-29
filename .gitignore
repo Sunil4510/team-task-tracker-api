@@ -1,0 +1,6 @@
+docs/system_context.md
+docs/hld.md
+docs/task_plan.md
+node_modules/
+dist/
+.env
