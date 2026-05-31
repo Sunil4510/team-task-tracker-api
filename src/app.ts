@@ -7,6 +7,8 @@ import { errorHandler } from './middleware/error.middleware';
 import { requireAuth } from './middleware/auth.middleware';
 import { requireRole } from './middleware/rbac.middleware';
 import { redisCache } from './cache/redis.client';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.config';
 
 dotenv.config();
 
@@ -15,6 +17,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
