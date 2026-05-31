@@ -22,6 +22,8 @@ router.post('/', validateRequest(createTaskSchema, 'body'), TaskController.creat
 
 router.get('/', validateRequest(listTasksQuerySchema, 'query'), TaskController.list);
 
+router.get('/analytics', TaskController.analytics);
+
 router.get('/:id', validateRequest(uuidParamSchema, 'params'), TaskController.getById);
 
 router.put(

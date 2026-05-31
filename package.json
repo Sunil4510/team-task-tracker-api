@@ -9,7 +9,7 @@
     "start": "node dist/app.ts",
     "lint": "eslint \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "npx ts-node tests/workflow.test.ts && npx ts-node tests/security.test.ts && npx ts-node tests/auth_rotation.test.ts && npx ts-node tests/cache.test.ts"
+    "test": "npx ts-node tests/workflow.test.ts && npx ts-node tests/security.test.ts && npx ts-node tests/auth_rotation.test.ts && npx ts-node tests/cache.test.ts && npx ts-node tests/analytics.test.ts"
   },
   "keywords": [],
   "author": "Sunil Kurapati",

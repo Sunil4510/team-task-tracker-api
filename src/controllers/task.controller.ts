@@ -212,4 +212,38 @@ export class TaskController {
       next(error);
     }
   }
+
+  /**
+   * @openapi
+   * /api/tasks/analytics:
+   *   get:
+   *     tags: [Tasks]
+   *     summary: Get task analytics for the organization (Bonus)
+   *     description: Provides overdue task counts per user and average completion times.
+   *     security: [{ bearerAuth: [] }]
+   *     responses:
+   *       200:
+   *         description: Organization analytics
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 type: object
+   *                 properties:
+   *                   id: { type: string }
+   *                   name: { type: string }
+   *                   email: { type: string }
+   *                   overdueCount: { type: integer }
+   *                   avgCompletionTimeSeconds: { type: number }
+   */
+  static async analytics(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) throw new AppError('Unauthorized', 401);
+      const result = await TaskService.getAnalytics(req.user.organizationId);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

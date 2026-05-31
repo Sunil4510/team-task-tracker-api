@@ -170,4 +170,24 @@ export class TaskService {
 
     return result;
   }
+
+  static async getAnalytics(organizationId: string) {
+    // Demonstrating SQL Aggregations as requested by SDE II Bonus requirement
+    // Note: We cast COUNT to INTEGER because BigInt is not JSON-serializable by default in JS.
+    const analytics = await prisma.$queryRaw`
+      SELECT 
+        u.id, 
+        u.name,
+        u.email,
+        CAST(COUNT(t.id) FILTER (WHERE t.status != 'DONE' AND t."dueDate" < NOW()) AS INTEGER) as "overdueCount",
+        COALESCE(AVG(EXTRACT(EPOCH FROM (t."updatedAt" - t."createdAt"))) FILTER (WHERE t.status = 'DONE'), 0) as "avgCompletionTimeSeconds"
+      FROM users u
+      LEFT JOIN tasks t ON u.id = t."assigneeId"
+      WHERE u."organizationId" = ${organizationId}
+      GROUP BY u.id, u.name, u.email
+      ORDER BY "overdueCount" DESC
+    `;
+
+    return analytics;
+  }
 }
