@@ -127,23 +127,35 @@ export class AuthService {
   }
 
   static async refresh(token: string) {
+    const tokenHash = hashSHA256(token);
+
     try {
       const decoded = verifyRefreshToken(token);
-      const tokenHash = hashSHA256(token);
+
+      // 1. Check for reuse detection OUTSIDE the transaction.
+      // If we throw inside a transaction, Prisma rolls back the changes.
+      // We NEED the revocation of all tokens to persist.
+      const storedToken = await prisma.refreshToken.findUnique({
+        where: { tokenHash },
+      });
+
+      if (storedToken && storedToken.revoked) {
+        await prisma.refreshToken.updateMany({
+          where: { userId: decoded.userId, revoked: false },
+          data: { revoked: true },
+        });
+        throw new AppError('Refresh token reuse detected. All sessions revoked.', 401);
+      }
+
+      if (!storedToken) {
+        throw new AppError('Invalid refresh token', 401);
+      }
+
+      if (storedToken.expiresAt < new Date()) {
+        throw new AppError('Refresh token expired', 401);
+      }
 
       return await prisma.$transaction(async (tx) => {
-        const storedToken = await tx.refreshToken.findUnique({
-          where: { tokenHash },
-        });
-
-        if (!storedToken || storedToken.revoked) {
-          throw new AppError('Invalid or revoked refresh token', 401);
-        }
-
-        if (storedToken.expiresAt < new Date()) {
-          throw new AppError('Refresh token expired', 401);
-        }
-
         // Revoke the old token
         await tx.refreshToken.update({
           where: { id: storedToken.id },

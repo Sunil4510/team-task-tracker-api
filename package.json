@@ -1,18 +1,18 @@
 {
   "name": "team-task-tracker-api",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Multi-tenant Team Task Tracker API",
+  "main": "dist/app.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
     "build": "tsc",
     "start": "node dist/app.ts",
     "lint": "eslint \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx ts-node tests/workflow.test.ts && npx ts-node tests/security.test.ts && npx ts-node tests/auth_rotation.test.ts && npx ts-node tests/cache.test.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "Sunil Kurapati",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
