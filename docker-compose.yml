@@ -5,10 +5,11 @@ services:
     build: .
     ports:
       - "${PORT:-3000}:3000"
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-user}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-team_task_tracker}?schema=public
       - REDIS_URL=redis://redis:6379
-      - NODE_ENV=${NODE_ENV:-development}
     depends_on:
       - db
       - redis

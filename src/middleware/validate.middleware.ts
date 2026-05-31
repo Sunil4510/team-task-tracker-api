@@ -4,7 +4,17 @@ import { ZodSchema, ZodError } from 'zod';
 export const validateRequest = (schema: ZodSchema, target: 'body' | 'query' | 'params' = 'body') => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      req[target] = schema.parse(req[target]);
+      const parsedData = schema.parse(req[target]);
+      
+      // Express 5 specific: req.query and req.params are often read-only getters.
+      // We use Object.defineProperty to bypass the getter and set the validated/coerced data.
+      Object.defineProperty(req, target, {
+        value: parsedData,
+        writable: true,
+        configurable: true,
+        enumerable: true
+      });
+      
       next();
     } catch (error) {
       if (error instanceof ZodError) {
