@@ -1,6 +1,8 @@
 import { PrismaClient, TaskStatus } from '@prisma/client';
 import { CreateTaskInput, UpdateTaskInput, ListTasksQuery } from '../validators/task.validator';
 import { AppError } from '../errors/app.error';
+import { redisCache } from '../cache/redis.client';
+import { hashSHA256 } from '../utils/crypto.util';
 
 const prisma = new PrismaClient();
 
@@ -33,13 +35,18 @@ export class TaskService {
       await this.verifyAssigneeOrg(data.assigneeId, organizationId);
     }
 
-    return await prisma.task.create({
+    const task = await prisma.task.create({
       data: {
         ...data,
         organizationId,
         createdById: userId,
       },
     });
+
+    // Invalidate cache
+    await redisCache.deletePattern(`tasks:${organizationId}:*`);
+
+    return task;
   }
 
   static async getTaskById(id: string, organizationId: string) {
@@ -86,10 +93,15 @@ export class TaskService {
       }
     }
 
-    return await prisma.task.update({
+    const updatedTask = await prisma.task.update({
       where: { id },
       data,
     });
+
+    // Invalidate cache
+    await redisCache.deletePattern(`tasks:${organizationId}:*`);
+
+    return updatedTask;
   }
 
   static async deleteTask(id: string, organizationId: string) {
@@ -105,9 +117,24 @@ export class TaskService {
     await prisma.task.delete({
       where: { id },
     });
+
+    // Invalidate cache
+    await redisCache.deletePattern(`tasks:${organizationId}:*`);
   }
 
   static async listTasks(query: ListTasksQuery, organizationId: string) {
+    const queryHash = hashSHA256(JSON.stringify(query));
+    const cacheKey = `tasks:${organizationId}:${queryHash}`;
+
+    // Try to get from cache first
+    const cachedResult = await redisCache.get<any>(cacheKey);
+    if (cachedResult) {
+      console.log(`Cache hit for key ${cacheKey}`);
+      return cachedResult;
+    }
+
+    console.log(`Cache miss for key ${cacheKey}`);
+
     const { page, limit, status, priority, assigneeId, sortBy, sortOrder } = query;
     const skip = (page - 1) * limit;
 
@@ -128,7 +155,7 @@ export class TaskService {
       prisma.task.count({ where: whereClause }),
     ]);
 
-    return {
+    const result = {
       data: tasks,
       meta: {
         total,
@@ -137,5 +164,10 @@ export class TaskService {
         totalPages: Math.ceil(total / limit),
       },
     };
+
+    // Save to cache
+    await redisCache.set(cacheKey, result);
+
+    return result;
   }
 }

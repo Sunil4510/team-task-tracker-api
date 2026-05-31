@@ -6,6 +6,7 @@ import taskRoutes from './routes/task.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { requireAuth } from './middleware/auth.middleware';
 import { requireRole } from './middleware/rbac.middleware';
+import { redisCache } from './cache/redis.client';
 
 dotenv.config();
 
@@ -33,8 +34,14 @@ app.post('/api/mock/admin-only', requireAuth, requireRole(['ADMIN']), (req: Requ
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// Initialize Redis and start server
+const startServer = async () => {
+  await redisCache.connect();
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
+};
+
+startServer();
 
 export default app;

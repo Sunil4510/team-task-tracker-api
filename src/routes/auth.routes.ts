@@ -9,6 +9,7 @@ import {
   logoutSchema,
 } from '../validators/auth.validator';
 
+// This is a no-op replace just to confirm I didn't break anything.
 const router = Router();
 
 const authLimiter = rateLimit({

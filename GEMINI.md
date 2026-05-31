@@ -52,6 +52,7 @@ I operate as a multi-agent ecosystem. Every implementation follows the **Autonom
 ---
 
 ## Architectural Guardrails (Non-Negotiable)
+- **Git Operations:** NEVER stage (`git add`), commit (`git commit`), or push (`git push`) without explicit user permission. Always ask for confirmation before performing any source control actions.
 - **Data Isolation:** Cross-tenant data leakage is a P0 critical failure.
 - **Layered Flow:** Controllers must remain thin. Business logic ONLY in Services.
 - **Validation:** Zod schemas are mandatory for all request bodies and params.

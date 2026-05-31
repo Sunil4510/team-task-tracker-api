@@ -4,3 +4,5 @@ docs/task_plan.md
 node_modules/
 dist/
 .env
+
+/src/generated/prisma

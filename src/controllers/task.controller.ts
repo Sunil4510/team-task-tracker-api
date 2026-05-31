@@ -16,7 +16,7 @@ export class TaskController {
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.user) throw new AppError('Unauthorized', 401);
-      const task = await TaskService.getTaskById(req.params.id, req.user.organizationId);
+      const task = await TaskService.getTaskById(req.params.id as string, req.user.organizationId);
       res.status(200).json(task);
     } catch (error) {
       next(error);
@@ -27,7 +27,7 @@ export class TaskController {
     try {
       if (!req.user) throw new AppError('Unauthorized', 401);
       const task = await TaskService.updateTask(
-        req.params.id,
+        req.params.id as string,
         req.body,
         req.user.userId,
         req.user.organizationId,
@@ -42,7 +42,7 @@ export class TaskController {
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.user) throw new AppError('Unauthorized', 401);
-      await TaskService.deleteTask(req.params.id, req.user.organizationId);
+      await TaskService.deleteTask(req.params.id as string, req.user.organizationId);
       res.status(204).send();
     } catch (error) {
       next(error);
