@@ -81,7 +81,15 @@ npm test
 - **Services**: Contain 100% of the business logic, workflow rules, and security isolation logic.
 - **Middleware**: Decoupled logic for Auth, RBAC, and Zod validation.
 
-### 💾 Database Design Decision: Composite Indexing
+### 💾 Database Design Decisions
+
+#### Why PostgreSQL over NoSQL (e.g., MongoDB)?
+For a Task Management system, PostgreSQL was selected over NoSQL alternatives for three primary reasons:
+1.  **ACID Compliance & Data Integrity**: Task management involves complex state transitions (Workflow Engine). SQL's ACID properties ensure that a task cannot be in an inconsistent state, and referential integrity ensures that a task cannot be assigned to a non-existent user.
+2.  **Relational Complexity**: The system relies heavily on relationships between `Organizations`, `Users`, and `Tasks`. SQL handles these joins natively and efficiently, whereas NoSQL would require either data duplication (leading to stale data) or multiple manual queries.
+3.  **Powerful Aggregations**: As demonstrated in the `Analytics` bonus feature, SQL's ability to perform complex aggregations (Window functions, counts, and intervals) is far superior and more performant for reporting than NoSQL aggregation pipelines.
+
+#### Composite Indexing Strategy
 For the `tasks` table, I implemented **Composite Indexes** (e.g., `[organizationId, assigneeId]` and `[organizationId, status]`). 
 - **Reasoning**: In a multi-tenant system, nearly 100% of queries filter by `organizationId`. A single index on `assigneeId` would be less efficient than a composite index that first narrows the search space to the specific organization. This ensures O(log n) lookup speeds even as the database grows to millions of tasks across thousands of tenants.
 
